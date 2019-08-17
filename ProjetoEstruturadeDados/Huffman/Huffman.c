@@ -8,19 +8,26 @@
 
 typedef struct queue queue;
 typedef struct list tnode;
+typedef struct hash hash;
+typedef struct element element;
 typedef long int lint;
 typedef unsigned char byte;
 
 void set_frequence_to_zero(lint *frequence);
 queue *create_queue();
+hash *create_dictionary();
 void counting_frequence(FILE *input, lint *frequence);
-void make_list(queue *tree_queue, lint *frequence);
+void compress(queue *tree_queue, lint *frequence);
 void enqueue(queue *tree_queue, byte c, lint freq, tnode *left, tnode *right);
 void make_huff_tree(queue *tree_queue);
-void merge(queue *tree_queue, tnode *a, tnode *b);
+void make_hash(hash *ht, tnode *huff, byte *bin_counter, lint *i);
+void string_to_hash(hash *ht, byte index, byte *bin_counter);
+byte *add_left(byte *bin_counter, lint *i);
+byte *add_right(byte *bin_counter, lint *i);
 tnode *dequeue(queue *tree_queue);
 void print(tnode *p_queue);
 void print_pre_order(tnode *huff_tree);
+void print_dictionary(hash *ht);
 
 void main()
 {
@@ -40,12 +47,19 @@ void main()
 	}
 
 	////////////////////////////////////////////////////
-	 printf("Compactar ou Descompactar ? [c // d]\n");
-	 char choice[5];
-	 scanf("%[^\n]s", choice);
+	 printf("Compactar ou Descompactar ?\n");
+	 printf("1) Compactar\n2) Descompactar\n");
+	 int choice;
+	 scanf("%d", &choice);
+     if(choice == 1)
+     {
+        counting_frequence(input, frequence);
+        compress(new_queue, frequence);
+     }
+     else
+        puts("é pra descompressão");
+
 	////////////////////////////////////////////////////
-	counting_frequence(input, frequence);
-	make_list(new_queue, frequence);
 }
 
 struct queue
@@ -63,6 +77,16 @@ struct list
 
 };
 
+struct hash
+{
+	element *table[256];
+};
+
+struct element
+{
+	byte bin_counter[100];
+};
+
 void set_frequence_to_zero(lint *frequence)
 {
 	int i;
@@ -74,6 +98,17 @@ queue *create_queue()
 {
 	queue *temp = (queue*)malloc(sizeof(queue));
 	temp->head = NULL;
+	return temp;
+}
+
+hash *create_dictionary()
+{
+	hash *temp = (hash*)malloc(sizeof(hash));
+	int i;
+	for (i = 0; i < 256; ++i)
+	{
+		temp->table[i] = NULL;
+	}
 	return temp;
 }
 
@@ -89,7 +124,7 @@ void counting_frequence(FILE *input, lint *frequence)
 }
 
 
-void make_list(queue *tree_queue, lint *frequence)
+void compress(queue *tree_queue, lint *frequence)
 {
 	int i;
 	for (i = 0; i < 256; i++)
@@ -141,6 +176,8 @@ void make_huff_tree(queue *tree_queue)
 		b = a->next;
 	}
 
+	hash *new_hash = create_dictionary();
+
 	tnode *hff = tree_queue->head;
 	print(hff);
 
@@ -149,6 +186,56 @@ void make_huff_tree(queue *tree_queue)
 	print_pre_order(huff_tree);
 	printf("\n");
 
+	byte bin_counter[20] = {0};
+	lint i = 0;
+	make_hash(new_hash, tree_queue->head, bin_counter, &i);
+	print_dictionary(new_hash);
+
+}
+
+void make_hash(hash *ht, tnode *huff, byte *bin_counter, lint *i)
+{
+	if (huff != NULL)
+	{
+		if(huff->left == NULL && huff->right == NULL)
+		{
+			string_to_hash(ht, huff->c, bin_counter);
+
+			bin_counter[*i] = NULL;
+			*i -= 1;
+			return;
+		}
+
+		bin_counter = add_left(bin_counter, i);
+		make_hash(ht, huff->left, bin_counter, i);
+
+		bin_counter = add_right(bin_counter, i);
+		make_hash(ht, huff->right, bin_counter, i);
+
+		bin_counter[*i] = NULL;
+		*i -= 1;
+	}
+}
+
+void string_to_hash(hash *ht, byte index, byte *bin_counter)
+{
+	element *temp = (element*)malloc(sizeof(element));
+	strcpy(temp->bin_counter, bin_counter);
+	ht->table[index] = temp;
+}
+
+byte *add_left(byte *bin_counter, lint *i)
+{
+	bin_counter[*i] = '0';
+	*i += 1;
+	return bin_counter;
+}
+
+byte *add_right(byte *bin_counter, lint *i)
+{
+	bin_counter[*i] = '1';
+	*i += 1;
+	return bin_counter;
 }
 
 tnode *dequeue(queue *tree_queue)
@@ -184,5 +271,18 @@ void print_pre_order(tnode *huff_tree)
 		printf("%c", huff_tree->c);
 		print_pre_order(huff_tree->left);
 		print_pre_order(huff_tree->right);
+	}
+}
+
+void print_dictionary(hash *ht)
+{
+	int i;
+
+	for (i = 0; i < 255; ++i)
+	{
+		if (ht->table[i] != NULL)
+		{
+			printf("%c ---> %s\n", i, ht->table[i]->bin_counter);
+		}
 	}
 }

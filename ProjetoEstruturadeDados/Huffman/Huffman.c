@@ -12,12 +12,16 @@ typedef struct hash hash;
 typedef struct element element;
 typedef long int lint;
 typedef unsigned char byte;
+typedef unsigned short dual_byte;
 
 void set_frequence_to_zero(lint *frequence);
 queue *create_queue();
 hash *create_dictionary();
 void counting_frequence(FILE *input, lint *frequence);
-void compress(queue *tree_queue, lint *frequence);
+void make_frequence(queue *tree_queue, lint *frequence);
+void compress(FILE *input, char *archive, queue *tree_queue);
+void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_hash);
+void count_tree_size(tnode *huff_tree, dual_byte *t);
 void enqueue(queue *tree_queue, byte c, lint freq, tnode *left, tnode *right);
 void make_huff_tree(queue *tree_queue);
 void make_hash(hash *ht, tnode *huff, byte *bin_counter, lint *i);
@@ -51,10 +55,12 @@ void main()
 	 printf("1) Compactar\n2) Descompactar\n");
 	 int choice;
 	 scanf("%d", &choice);
+
      if(choice == 1)
      {
         counting_frequence(input, frequence);
-        compress(new_queue, frequence);
+        make_frequence(new_queue, frequence);
+        compress(input, &archive, new_queue);
      }
      else
         puts("é pra descompressão");
@@ -124,7 +130,7 @@ void counting_frequence(FILE *input, lint *frequence)
 }
 
 
-void compress(queue *tree_queue, lint *frequence)
+void make_frequence(queue *tree_queue, lint *frequence)
 {
 	int i;
 	for (i = 0; i < 256; i++)
@@ -134,7 +140,61 @@ void compress(queue *tree_queue, lint *frequence)
 			enqueue(tree_queue, i, frequence[i], NULL, NULL); // Tecnicamente,transforma um array numa lista com prioridade/fila
 		}
 	}
+}
+
+void compress(FILE *input, char *archive, queue *tree_queue)
+{
 	make_huff_tree(tree_queue);
+
+	hash *new_hash = create_dictionary();
+
+	tnode *hff = tree_queue->head;
+	print(hff);
+
+	tnode *huff_tree = tree_queue->head;
+	printf("Tree -> ");
+	print_pre_order(huff_tree);
+	printf("\n");
+
+	byte bin_counter[20] = {0};
+	lint i = 0;
+	make_hash(new_hash, tree_queue->head, bin_counter, &i);
+	print_dictionary(new_hash);
+
+	construct_file(input, &archive, huff_tree, new_hash);
+}
+
+void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_hash)
+{
+	//puts("construct");
+	int archive_name = strlen(archive);
+
+    printf("%d\n", archive_name);
+    
+	strcat(archive_name, ".huff");
+
+	dual_byte tree_size = 0;
+
+	count_tree_size(huff_tree, &tree_size);
+
+    printf("Tree Size: %d\n", tree_size);
+
+	//FILE *output = fopen(archive_name, "w+b"); // escreve o arquivo em modo binário
+}
+
+void count_tree_size(tnode *huff_tree, dual_byte *t)
+{
+	if (huff_tree != NULL)
+	{
+		if ((huff_tree->c == '\\' || huff_tree->c == '*') && huff_tree->left == NULL && huff_tree->right == NULL )
+		{
+		*t += 1;
+        }
+		*t += 1;
+
+		count_tree_size(huff_tree->left, t);
+		count_tree_size(huff_tree->right, t);
+	}
 }
 
 void enqueue(queue *tree_queue, byte c, lint f, tnode *left, tnode *right)
@@ -175,22 +235,6 @@ void make_huff_tree(queue *tree_queue)
 		a = tree_queue->head;
 		b = a->next;
 	}
-
-	hash *new_hash = create_dictionary();
-
-	tnode *hff = tree_queue->head;
-	print(hff);
-
-	tnode *huff_tree = tree_queue->head;
-	printf("Tree -> ");
-	print_pre_order(huff_tree);
-	printf("\n");
-
-	byte bin_counter[20] = {0};
-	lint i = 0;
-	make_hash(new_hash, tree_queue->head, bin_counter, &i);
-	print_dictionary(new_hash);
-
 }
 
 void make_hash(hash *ht, tnode *huff, byte *bin_counter, lint *i)

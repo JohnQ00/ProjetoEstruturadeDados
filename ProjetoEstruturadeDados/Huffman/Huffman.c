@@ -166,30 +166,30 @@ void compress(FILE *input, char *archive, queue *tree_queue)
 
 void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_hash)
 {
-	//puts("construct");
+	puts("construct");
 	int archive_name = strlen(archive);
 
-    printf("%d\n", archive_name);
-    
 	strcat(archive_name, ".huff");
 
-	dual_byte tree_size = 0;
-
+	int tree_size = 0;
 	count_tree_size(huff_tree, &tree_size);
 
-    printf("Tree Size: %d\n", tree_size);
+	printf("tree size: %d\n", tree_size);
 
-	//FILE *output = fopen(archive_name, "w+b"); // escreve o arquivo em modo binário
+	FILE *output = fopen(compressed.huff, "w+b"); // escreve o arquivo em modo binário
+
+	fseek(output, );
 }
 
 void count_tree_size(tnode *huff_tree, dual_byte *t)
 {
+	puts("count");
 	if (huff_tree != NULL)
 	{
-		if ((huff_tree->c == '\\' || huff_tree->c == '*') && huff_tree->left == NULL && huff_tree->right == NULL )
-		{
-		*t += 1;
-        }
+		// if ((huff_tree->c == '\\' || huff_tree->c == '*') && huff_tree->left == NULL && huff_tree->right == NULL )
+		// {
+		// 	*t += 1;
+		// }
 		*t += 1;
 
 		count_tree_size(huff_tree->left, t);

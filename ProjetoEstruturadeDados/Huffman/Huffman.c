@@ -17,12 +17,15 @@ typedef unsigned short dual_byte;
 void set_frequence_to_zero(lint *frequence);
 queue *create_queue();
 hash *create_dictionary();
+tnode *create_tnode(byte c, tnode *left, tnode *right);
 void counting_frequence(FILE *input, lint *frequence);
 void make_frequence(queue *tree_queue, lint *frequence);
 void compress(FILE *input, char *archive, queue *tree_queue);
+void decompress(FILE *input);
+tnode *decompress_tree(FILE *input, tnode *huff_tree, int tree_size, int counter);
 void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_hash);
-int ascii(int dec);
 byte set_bit(byte aux, int i);
+byte deset_bit(byte c, int i);
 int is_bit_set(byte aux, int i);
 int is_dualbit_set(dual_byte aux, int i);
 void put_tree_in_output(tnode *huff_tree, FILE *output);
@@ -68,8 +71,7 @@ void main()
         compress(input, &archive, new_queue);
      }
      else
-        puts("é pra descompressão");
-
+        decompress(input);
 	////////////////////////////////////////////////////
 }
 
@@ -173,6 +175,105 @@ void compress(FILE *input, char *archive, queue *tree_queue)
 	construct_file(input, &archive, huff_tree, new_hash);
 }
 
+void decompress(FILE *input)
+{
+    tnode *huff_tree = NULL;
+    FILE *output;
+    byte c;
+    byte one, two;
+
+    fread(&one, 1, 1, input);
+    fread(&two, 1, 1, input);
+
+    lint trash_size = 1;
+    lint tree_size = 0;
+
+    int counter = 0;
+    int i = 0;
+    int aux = 0;
+
+    int file_start;
+
+    for (i = 0; i < 16; i++)
+    {
+    	if (i < 8)
+    	{
+    		if (is_bit_set(two, i))
+    		{
+    			tree_size += pow(2,i);
+    		}
+    	}
+    	else
+    	{
+    		if (i < 13)
+    		{
+    			if (is_bit_set(one, aux))
+    			{
+    				tree_size += pow(2,i);
+    			}
+    			aux++;
+    		}
+    		else
+    		{
+    			if (is_bit_set(one, aux))
+    			{
+    				trash_size += pow(2,counter);
+    			}
+    			aux++;
+    			counter++;
+    		}
+    	}
+    }
+
+     printf("lixo : %d e arvore: %d", trash_size, tree_size);
+     counter = 0;
+     huff_tree = decompress_tree(input, huff_tree, tree_size, 0);
+
+     printf("\n");
+     print_pre_order(huff_tree);
+
+     //FILE *output = fopen("decompressed.txt", "w+b");
+}
+
+tnode *decompress_tree(FILE *input, tnode *huff_tree, int tree_size, int counter)
+{
+    byte c;
+
+    if(counter == tree_size) return NULL;
+    fscanf(input, "%c", &c);
+
+    if(c == '\\')
+    {
+    	fscanf(input, "%c", &c);
+    	return create_tnode(c, NULL, NULL);
+    }
+    else if (c != '*')
+    {
+    	return create_tnode(c, NULL, NULL);
+    }
+    else
+    {
+    	huff_tree = create_tnode(c, NULL, NULL);
+
+    	huff_tree->left = decompress_tree(input, huff_tree->left, tree_size, counter + 1);
+    	huff_tree->right = decompress_tree(input, huff_tree->right, tree_size, counter + 1);
+    }
+
+    return huff_tree;
+
+}
+
+tnode *create_tnode(byte c, tnode *left, tnode *right)
+{
+	tnode *temp = (tnode*)malloc(sizeof(tnode));
+	temp->c = c;
+	temp->freq = 0;
+	temp->next = NULL;
+	temp->left = left;
+	temp->right = right;
+	return temp;
+}
+
 void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_hash)
 {
 	//puts("construct");
@@ -200,8 +301,8 @@ void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_has
 	{
 		for (i = 0; i < new_hash->table[c]->bin_size; ++i)
 		{
-		    printf("%d\n", new_hash->table[c]->bin_counter[i]);
-			if (ascii(new_hash->table[c]->bin_counter[i]) == 1)
+		    //printf("%d\n", new_hash->table[c]->bin_counter[i]);
+			if (new_hash->table[c]->bin_counter[i] == 49)
 			{
 				aux = set_bit(aux,index);
 			}
@@ -263,16 +364,25 @@ void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_has
 /////////////////////////////////////////////////////////////////////////
 }
 
-int ascii(int dec)
-{
-	if (dec == 49){return 1;}
-	else if(dec == 48){return 0;}
-}
-
 byte set_bit(byte aux, int i)
 {
 	byte mask = 1 << i;
 	return mask | aux;
+}
+
+byte deset_bit(byte c, int i)
+{
+	int j;
+	byte mask = 1 << i;
+	byte r;
+	for (j= 0; j < 7 ; ++j)
+	{
+		if (is_bit_set(c,j) && !is_bit_set(mask, j))
+		{
+			r = set_bit(r,j);
+		}
+	}
+	return r;
 }
 
 int is_bit_set(byte aux, int i)

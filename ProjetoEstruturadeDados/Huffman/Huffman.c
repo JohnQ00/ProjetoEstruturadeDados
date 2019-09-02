@@ -178,14 +178,18 @@ void compress(FILE *input, char *archive, queue *tree_queue)
 void decompress(FILE *input)
 {
     tnode *huff_tree = NULL;
-    FILE *output;
     byte c;
     byte one, two;
+
+    fseek(input,-1, SEEK_END);
+    byte bit = fgetc(input);
+    long long int input_bytes = ftell(input);
+    rewind(input);
 
     fread(&one, 1, 1, input);
     fread(&two, 1, 1, input);
 
-    lint trash_size = 1;
+    lint trash_size = 0;
     lint tree_size = 0;
 
     int counter = 0;
@@ -232,7 +236,61 @@ void decompress(FILE *input)
      printf("\n");
      print_pre_order(huff_tree);
 
-     //FILE *output = fopen("decompressed.txt", "w+b");
+     FILE *output = fopen("decompressed.mp4", "w+b");
+
+     int j;
+     tnode *root = huff_tree;
+
+     while(1)
+     {
+     	fscanf(input, "%c", &c);
+
+     	for (j = 7; j >= 0 ; j--)
+     	{
+     		if (is_bit_set(c,j))
+     		{
+     			huff_tree = huff_tree->right;
+     		}
+     		else
+			{
+				huff_tree = huff_tree->left;
+			}
+			if (huff_tree->left == NULL && huff_tree->right == NULL)
+			{
+				fputc(huff_tree->c, output);
+				huff_tree = root;
+			}
+     	}
+     	if (ftell(input) == (input_bytes - 1))
+     	{
+     		break;
+     	}
+     }
+
+     for (j = 7; j >= trash_size; j--)
+     {
+     	if (is_bit_set(bit, j))
+     	{
+     		huff_tree = huff_tree->right;
+     	}
+
+     	else
+     	{
+     		huff_tree = huff_tree->left;
+     	}
+
+     	if (huff_tree->left == NULL && huff_tree->right == NULL)
+     	{
+     		fputc(huff_tree->c, output);
+     		huff_tree = root;
+     	}
+     }
+
+    printf("\n");
+    puts("////////////////////");
+    puts("Arquivo Descompactado");
+    puts("////////////////////");
+    printf("\n");
 }
 
 tnode *decompress_tree(FILE *input, tnode *huff_tree, int tree_size, int counter)
@@ -361,6 +419,11 @@ void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_has
     fputc(byte_two, output);
     put_tree_in_output(huff_tree,output);
 
+    printf("\n");
+    puts("////////////////////");
+    puts("Arquivo Compactado");
+    puts("////////////////////");
+    printf("\n");
 /////////////////////////////////////////////////////////////////////////
 }
 

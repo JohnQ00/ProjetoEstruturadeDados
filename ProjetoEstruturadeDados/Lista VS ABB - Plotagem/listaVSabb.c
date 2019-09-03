@@ -45,31 +45,7 @@ b_tree* construct(b_tree *bst, int number){
 	return bst;
 }
 
-//Maps the tree to the desired node.
-int map(b_tree *bst, int number, int comp){
-	if(bst == NULL){
-		printf("O elemento nao existe na arvore\n");
-		return comp;
-	}
-	else if(bst != NULL){
-		
-		if(number == bst->value){
-			printf("O elemento existe na arvore\n");
-			return comp+1;
-		}
-		else if(number < bst->value){
-			comp = map(bst->left, number, comp+1); // ++comp
-		}
-		else if(number > bst->value){
-			comp = map(bst->right, number, comp+1);
-		}
-		return comp;
-	}
-	
-	
-	//return comp;
-}
-
+//Maps the tree to the desired node;
 void map2(b_tree *bst, int number, int *counter){
 	if(bst == NULL){
 		printf("O elemento n existe na arvore!!!");
@@ -156,6 +132,7 @@ void printlist(l_list *list){
 }
 int main()
 {
+	//LEMBRAR QUE CADA VEZ Q RODA O CODIGO, ELE ESCREVE NO FINAL DO .CSV SE JÁ EXISTIR UM abb.csv ou list.csv ; 
 	b_tree *bst = NULL;
 	l_list *list = NULL;
 	int x,i;

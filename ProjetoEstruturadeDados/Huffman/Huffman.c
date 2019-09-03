@@ -25,7 +25,6 @@ void decompress(FILE *input);
 tnode *decompress_tree(FILE *input, tnode *huff_tree, int tree_size, int counter);
 void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_hash);
 byte set_bit(byte aux, int i);
-byte deset_bit(byte c, int i);
 int is_bit_set(byte aux, int i);
 int is_dualbit_set(dual_byte aux, int i);
 void put_tree_in_output(tnode *huff_tree, FILE *output);
@@ -236,7 +235,7 @@ void decompress(FILE *input)
      printf("\n");
      print_pre_order(huff_tree);
 
-     FILE *output = fopen("decompressed.mp4", "w+b");
+     FILE *output = fopen("decompressed.txt", "w+b");
 
      int j;
      tnode *root = huff_tree;
@@ -391,7 +390,7 @@ void construct_file(FILE *input, char *archive, tnode *huff_tree, hash * new_has
 
 	printf("tree size: %d\n", tree_size);
 	aux2 = aux2 + tree_size;
-	printf("\nlixo: %d\n", aux2);
+	//printf("\nlixo: %d\n", aux2);
 	//printf("\n%d\n", aux2);
 
 	byte byte_one = 0;
@@ -431,21 +430,6 @@ byte set_bit(byte aux, int i)
 {
 	byte mask = 1 << i;
 	return mask | aux;
-}
-
-byte deset_bit(byte c, int i)
-{
-	int j;
-	byte mask = 1 << i;
-	byte r;
-	for (j= 0; j < 7 ; ++j)
-	{
-		if (is_bit_set(c,j) && !is_bit_set(mask, j))
-		{
-			r = set_bit(r,j);
-		}
-	}
-	return r;
 }
 
 int is_bit_set(byte aux, int i)

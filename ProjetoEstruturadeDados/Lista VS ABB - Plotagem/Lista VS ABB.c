@@ -28,7 +28,7 @@ b_tree* create_new_node(int value){
 //Build the tree randomly.
 b_tree* construct(b_tree *bst, int number){
 	if(bst == NULL){
-		bst = create_new_node(RAND_MAX/2);
+		bst = create_new_node(number); // tava RANDMAX/2
 	}
 	else if(number < bst->value){
 		if(bst->left != NULL)
@@ -45,42 +45,53 @@ b_tree* construct(b_tree *bst, int number){
 	return bst;
 }
 
-//Maps the tree to the desired node.
-int map(b_tree *bst, int number, int comp){
+//Maps the tree to the desired node;
+void map2(b_tree *bst, int number, int *counter){
 	if(bst == NULL){
-		printf("O elemento nao existe na arvore\n");
-		return comp;
+		printf("O elemento n existe na arvore!!!");
 	}
-	else if(number == bst->value){
-		printf("O elemento existe na arvore\n");
-		return comp+1;
+	else{
+
+		if(number == bst->value){
+			printf("Existe o elemento\n");
+			*counter += 1;
+		}
+		else if(number < bst->value){
+			*counter += 1;
+			map2(bst->left, number, counter);
+		}
+		else if(number > bst->value){
+			*counter +=1;
+			map2(bst->right, number, counter);
+		}
 	}
-	else if(number < bst->value){
-		comp = map(bst->left, number, ++comp);
-	}
-	else if(number > bst->value){
-		comp = map(bst->right, number, ++comp);
-	}
-	
-	return comp;
 }
 
 //Handles the tree search.
-void tree_search(b_tree *bst, int number){
-	int x = map(bst, number, 0);
-	printf("comp: %d\n\n", x);
+void tree_search(b_tree *bst, int number)
+{
+	int counter = 0;
+	map2(bst, number, &counter);
+
+	FILE *out2 = fopen("abb.csv", "a+");
+	printf("number = %d\ncounter = %d\n\n", number, counter);
+	fprintf(out2, "%d,%d\n", number, counter);
+	fclose(out2);
+	//printf("comp: %d\n\n", x);
 }
 
-void print(b_tree *bst){
-	printf("%d ", bst->value);
-	if(bst->left != NULL)
+void print(b_tree *bst)
+{
+	if(bst != NULL){
+		printf("%d ", bst->value);
 		print(bst->left);
-	if(bst->right != NULL)
 		print(bst->right);
+	}
 }
 
 //Build the list randomly.
-l_list* construct_list(l_list *list, int value){
+l_list* construct_list(l_list *list, int value)
+{
 	l_list *new_node = (l_list *) malloc(sizeof(l_list ));
 	new_node->value = value;
 	new_node->next = list;
@@ -88,7 +99,8 @@ l_list* construct_list(l_list *list, int value){
 }
 
 //Handles the list search.
-void list_search(l_list *list, int item){
+void list_search(l_list *list, int item)
+{
 	l_list *aux = list;
 	int comp=0, i=0;
 	while(aux != NULL){
@@ -99,27 +111,52 @@ void list_search(l_list *list, int item){
 		}
 		aux=aux->next;
 	}
-	if(i) printf("O elemento existe na lista\ncomp: %d\n", comp);
-	else printf("O elemento nao existe na lista\ncomp: %d\n", comp);
+
+	printf("item: %d\n", item);
+	printf("comp: %d\n\n", comp);
+
+	FILE *out = fopen("list.csv", "a+");
+	fprintf(out, "%d,%d\n", item, comp);
+	fclose(out);
+	
+	// if(i) printf("O elemento existe na lista\ncomp: %d\n", comp);
+	// else printf("O elemento nao existe na lista\ncomp: %d\n", comp);
 }
 
-int main(){
+void printlist(l_list *list){
+
+	while(list != NULL){
+		printf("%d\n", list->value);
+		list = list->next;
+	}
+}
+int main()
+{
+	//LEMBRAR QUE CADA VEZ Q RODA O CODIGO, ELE ESCREVE NO FINAL DO .CSV SE JÁ EXISTIR UM abb.csv ou list.csv ; 
 	b_tree *bst = NULL;
 	l_list *list = NULL;
-	int x;
+	int x,i;
 	
 	srand((unsigned) time(NULL));
+
+	printf("\n\nDigite um numero: ");
+	scanf("%d", &x);
 	
-	for(int i = 0; i<10000; i++){
-		x = rand();
+	for(i = 0; i < 50000; i++)
+	{
+		x = 0 + ( rand() % 10000 );
 		bst = construct(bst, x);
 		list = construct_list(list, x);
 	}
-	print(bst);
-	printf("\n\nDigite um numero: ");
-	scanf("%d", &x);
-	tree_search(bst, x);
-	list_search(list, x);
+	for(i =0; i< 50000;i++){
+		x = 0 + ( rand() % 10000 );
+		tree_search(bst, x);
+		list_search(list, x);
+
+	}
+	
+
+	//print(bst);
 
 	return 0;
 }

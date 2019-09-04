@@ -9,9 +9,9 @@ y2 = data2(:,2);
 figure(1);
 
 subplot(1,2,1);
-plot(x1, y1, 'b');
+plot(x1, y1, 'k');
 title('Chained List');
 
 subplot(1,2,2);
-plot(x2, y2, 'r');
+plot(x2, y2, 'b');
 title('Binary Search Tree');

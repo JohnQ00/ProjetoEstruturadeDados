@@ -33,14 +33,14 @@ void main()
 
 struct trie
 {
-	int isLeaf;
+	int isWord;
 	trie *word[CHAR_SIZE];
 };
 
 trie *new_trie()
 {
 	trie *temp = (trie*)malloc(sizeof(trie));
-	temp->isLeaf = 0;
+	temp->isWord = 0;
 
 	int i;
 	for (i = 0; i < CHAR_SIZE; ++i)
@@ -57,7 +57,7 @@ void insert(trie *head, char *str)
 		temp = temp->word[*str];
 		str++;
 	}
-	temp->isLeaf = 1;
+	temp->isWord = 1;
 }
 
 int search(trie *head, char *str)
@@ -72,7 +72,7 @@ int search(trie *head, char *str)
 
 		str++;
 	}
-	return temp->isLeaf;
+	return temp->isWord;
 }
 
 int haveChildren(trie *head)
@@ -92,7 +92,7 @@ trie *delete(trie *head, char *str, int depth)
 	if (depth == strlen(str) )
 	{
 
-		if (head->isLeaf) head->isLeaf = 0;
+		if (head->isWord) head->isWord = 0;
 
 		if (!haveChildren(head)) {
 			free(head);
@@ -104,7 +104,7 @@ trie *delete(trie *head, char *str, int depth)
 	int index = str[depth];
 	head->word[index] = delete(head->word[index], str, depth + 1);
 
-	if (!haveChildren(head) && head->isLeaf == 0)
+	if (!haveChildren(head) && head->isWord == 0)
 	{
 		free(head);
 		head = NULL;

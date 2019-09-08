@@ -60,19 +60,18 @@ void insert(trie *head, char *str)
 	temp->isWord = 1;
 }
 
-int search(trie *head, char *str)
+int search (trie *head,char *str)
 {
-	if (head == NULL){return 0;}
-	trie *temp = head;
-	while(*str)
+	trie *walk = head;
+    int k;
+	for (k = 0; str[k]; k++)
 	{
-		temp = temp->word[*str];
-
-		if (temp == NULL){return 0;}
-
-		str++;
+		if (walk -> word[str[k]] == NULL)
+			return 0;
+		walk = walk -> word[str[k]];
 	}
-	return temp->isWord;
+	if (walk -> isWord == 1)
+		return 1;
 }
 
 int haveChildren(trie *head)
